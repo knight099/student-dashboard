@@ -11,7 +11,24 @@
   const filters=()=>window.dashboardFilters();
   const scope=f=>`${f.cohort==='ALL'?'All cohorts':f.cohort} · ${f.mode==='ALL'?'All modes':f.mode}`;
   function updateScope(){document.getElementById('chat-context').textContent=`Using dashboard filters: ${scope(filters())}`;}
-  function show(open){panel.hidden=!open;launch.setAttribute('aria-expanded',String(open));if(open){updateScope();input.focus();}else launch.focus();}
+  const mobile=window.matchMedia('(max-width:600px)');
+  function syncViewport(){
+    const viewport=window.visualViewport;
+    if(!viewport)return;
+    for(const [name,value] of Object.entries({height:viewport.height,width:viewport.width,top:viewport.offsetTop,left:viewport.offsetLeft})){
+      panel.style.setProperty(`--chat-viewport-${name}`,`${value}px`);
+    }
+  }
+  function focusInput(){if(!panel.hidden && !mobile.matches)input.focus({preventScroll:true});}
+  function show(open){
+    panel.hidden=!open;document.documentElement.classList.toggle('chat-open',open);
+    launch.setAttribute('aria-expanded',String(open));
+    if(open){updateScope();syncViewport();if(mobile.matches)document.getElementById('chat-close').focus({preventScroll:true});else focusInput();}
+    else{input.blur();launch.focus({preventScroll:true});}
+  }
+  window.visualViewport?.addEventListener('resize',syncViewport);
+  window.visualViewport?.addEventListener('scroll',syncViewport);
+  window.addEventListener('resize',syncViewport);
   function bubble(role,text,context){
     const item=document.createElement('div');item.className=`chat-message ${role}`;
     const label=document.createElement('strong');label.textContent=role==='user'?'You':`Dashboard assistant${context?` · ${scope(context)}`:''}`;
@@ -47,11 +64,11 @@
     }catch(error){
       history.pop();userBubble.remove();input.value=text;
       status.className='chat-status error';status.textContent=error.name==='AbortError'?'Stopped. Your question is ready to send again.':error.message;
-    }finally{controller=null;busy(false);input.focus();}
+    }finally{controller=null;busy(false);focusInput();}
   }
   launch.onclick=()=>show(panel.hidden);
   document.getElementById('chat-close').onclick=()=>show(false);
-  clear.onclick=()=>{history.length=0;welcome();status.textContent='';input.value='';input.focus();};
+  clear.onclick=()=>{history.length=0;welcome();status.textContent='';input.value='';focusInput();};
   document.getElementById('chat-form').onsubmit=event=>{event.preventDefault();submit();};
   input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();submit();}});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden)show(false);});

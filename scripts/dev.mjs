@@ -10,7 +10,7 @@ createServer(async(req,res)=>{
     res.json=data=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));};
     req.body=raw;await chat(req,res);return;
   }
-  const files={'/':'index.html','/chat.js':'chat.js','/chat.css':'chat.css'};
+  const files={'/':'index.html','/chat.js':'chat.js','/chat.css':'chat.css','/mobile.css':'mobile.css'};
   const file=files[req.url?.split('?')[0]];
   if(!file){res.writeHead(404);res.end('Not found');return;}
   res.setHeader('Content-Type',file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css':'application/javascript');
