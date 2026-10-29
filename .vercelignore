@@ -1,0 +1,8 @@
+.env
+.env.*
+.git
+student_analytics_mock_data.xlsx
+Live Session Attendance.html
+tests
+docs
+scripts
